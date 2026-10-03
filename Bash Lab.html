@@ -1,0 +1,132 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Bash Lab</title>
+<style>
+:root{--bg:#080b0d;--pn:#0e1419;--ln:#1b2b26;--tx:#d4ddd9;--mu:#7f908a;--g:#2ee59d;--c:#4fd1e8;--r:#ff6b78;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#f3f6f5;--pn:#fff;--ln:#d3dfda;--tx:#15211c;--mu:#5b6c66;--g:#067a52;--c:#0b6f86;--r:#b4232f}}
+:root[data-theme="light"]{--bg:#f3f6f5;--pn:#fff;--ln:#d3dfda;--tx:#15211c;--mu:#5b6c66;--g:#067a52;--c:#0b6f86;--r:#b4232f}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--tx);font:15px/1.55 system-ui,"Segoe UI",sans-serif}
+.m,code,pre,input,button,nav a{font-family:ui-monospace,"Cascadia Code",Consolas,monospace}
+#app{display:grid;grid-template-columns:210px minmax(0,1fr);height:100%}
+nav{background:var(--pn);border-right:1px solid var(--ln);padding:14px 8px;overflow:auto}
+nav b{display:block;color:var(--g);padding:4px 10px 14px;font-size:17px}
+nav a{display:block;padding:8px 10px;border-radius:6px;color:var(--mu);cursor:pointer;font-size:13px;white-space:nowrap}
+nav a:hover{color:var(--tx);background:var(--bg)}nav a.on{color:var(--g);background:var(--bg);box-shadow:inset 3px 0 var(--g)}
+main{overflow:auto;padding:26px 28px}
+h1{font-size:26px;margin:0 0 4px}h2{font-size:17px;margin:22px 0 8px;color:var(--c)}p{margin:6px 0}.mu{color:var(--mu)}
+.g{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.cd{background:var(--pn);border:1px solid var(--ln);border-radius:8px;padding:14px;cursor:pointer}.cd:hover{border-color:var(--g)}
+.st{background:var(--pn);border:1px solid var(--ln);border-radius:8px;padding:12px 14px}.st b{display:block;font-size:24px;color:var(--g)}
+button,.ch{background:transparent;border:1px solid var(--g);color:var(--g);padding:7px 13px;border-radius:6px;cursor:pointer;font-size:13px}
+button:hover,.ch.on{background:var(--g);color:var(--bg)}.ch{display:inline-block;margin:0 6px 6px 0;padding:4px 10px;border-color:var(--ln);color:var(--mu)}
+input{background:var(--pn);border:1px solid var(--ln);color:var(--tx);padding:9px 12px;border-radius:6px;width:100%;box-sizing:border-box;font-size:14px}
+input:focus,button:focus-visible,nav a:focus-visible{outline:2px solid var(--c);outline-offset:1px}
+pre,code{background:var(--pn);border:1px solid var(--ln);border-radius:6px;color:var(--g)}code{padding:1px 6px}pre{padding:12px;overflow-x:auto;margin:6px 0}
+.bar{height:8px;background:var(--ln);border-radius:4px;overflow:hidden}.bar i{display:block;height:100%;background:var(--g)}
+.ok{color:var(--g)}.no{color:var(--r)}.t{background:#04070a;color:#6ff0b5;border:1px solid var(--ln);border-radius:8px;padding:12px;height:300px;overflow:auto;white-space:pre-wrap;font-size:13px}
+.bd div{padding:8px 0;border-bottom:1px solid var(--ln)}.bd b{color:var(--g)}
+table{width:100%;border-collapse:collapse}td{padding:8px;border-bottom:1px solid var(--ln);vertical-align:top}.w{overflow-x:auto}
+#toast{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--g);color:var(--bg);padding:8px 14px;border-radius:6px;opacity:0;transition:opacity .25s}
+@media(max-width:760px){#app{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr)}nav{display:flex;overflow-x:auto;border:0;border-bottom:1px solid var(--ln);padding:6px}nav b{display:none}main{padding:16px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style></head><body><div id="app"></div><div id="toast"></div>
+<script>
+const $=s=>document.querySelector(s),esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const CATS="Files|Directories|Text|Permissions|Users|Processes|Networking|SSH|Cybersecurity|System|Archives".split("|");
+const D=`ls~Files~Beginner~List files and directories.~ls [OPTIONS] [PATH]~ls -la /var/log~Hidden dotfiles can hide persistence; ls -a exposes them.~Forgetting -a hides dotfiles.~cd,find
+pwd~Directories~Beginner~Print the current directory.~pwd~pwd~Confirm where you are before touching evidence.~Assuming you are in the right folder.~cd,ls
+cd~Directories~Beginner~Change directory.~cd [PATH]~cd /var/log~Jump to /var/log to start log review.~Spaces in names need quotes.~pwd,ls
+mkdir~Directories~Beginner~Create directories.~mkdir [-p] DIR~mkdir -p case/evidence~Organise case folders for investigations.~Missing -p for nested paths.~cd,touch
+cat~Files~Beginner~Print file contents.~cat FILE~cat notes.txt~Read configs, scripts and flags quickly.~cat on huge logs floods the screen.~less,head
+less~Files~Beginner~Page through long files.~less FILE~less /var/log/syslog~Browse big logs safely; / searches inside.~Trying to exit: press q.~cat,tail
+head~Files~Beginner~Show the first lines.~head [-n N] FILE~head -n 5 auth.log~Peek at file structure before analysis.~Forgetting the default is 10 lines.~tail,cat
+tail~Files~Beginner~Show the last lines.~tail [-f] FILE~tail -f auth.log~Watch new log events live with -f.~Using cat on growing logs.~head,less
+touch~Files~Beginner~Create an empty file.~touch FILE~touch notes.txt~Create markers or test files.~Expecting it to open an editor.~mkdir,cp
+cp~Files~Beginner~Copy files.~cp SRC DEST~cp evidence.log backup.log~Work on a copy to preserve original evidence.~Overwriting without -i.~mv,rm
+mv~Files~Beginner~Move or rename.~mv SRC DEST~mv old.txt new.txt~Rename artifacts while triaging.~Overwriting silently.~cp,rm
+rm~Files~Beginner~Delete files (no trash).~rm [-r] PATH~rm temp.txt~Know what a malicious script could destroy.~rm -rf with a wrong path.~rmdir,mv
+grep~Text~Beginner~Search text patterns in files or output.~grep [OPTIONS] PATTERN [FILE]~grep "Failed" auth.log~Find IOCs and failed logins in logs.~Forgetting -i for case-insensitive search.~find,sort,wc
+find~Files~Intermediate~Search files by name, type or age.~find [PATH] [EXPRESSION]~find /var/log -type f -name "*.log" 2>/dev/null~Locate suspicious files; find / -perm -4000 lists SUID.~Unquoted wildcards.~grep,ls
+sort~Text~Beginner~Sort lines.~sort [OPTIONS] FILE~sort users.txt~Order events before counting duplicates.~uniq needs sorted input.~uniq,wc
+uniq~Text~Intermediate~Collapse repeated adjacent lines.~uniq [-c]~sort ips.txt~Count repeated IPs in attack logs.~Not sorting first.~sort,wc
+wc~Text~Beginner~Count lines, words, bytes.~wc [-l] FILE~grep Failed auth.log~Count matching events fast.~Confusing -l with -w.~grep,sort
+cut~Text~Intermediate~Extract columns.~cut -d DELIM -f N~cut -d" " -f1 access.log~Pull IP addresses out of logs.~Wrong delimiter.~awk,sort
+chmod~Permissions~Intermediate~Change file permissions.~chmod MODE FILE~chmod 755 script.sh~Wrong permissions enable privilege escalation.~chmod 777 everywhere.~chown,id
+chown~Permissions~Intermediate~Change file owner.~chown USER[:GROUP] FILE~chown root:root file~Files owned by the wrong user are a red flag.~Forgetting sudo.~chmod,id
+whoami~Users~Beginner~Show current user.~whoami~whoami~First check after gaining a shell.~Assuming you are root.~id,pwd
+id~Users~Beginner~Show user and group IDs.~id [USER]~id~Check group memberships and privileges.~Confusing uid with gid.~whoami,chmod
+ps~Processes~Beginner~List running processes.~ps aux~ps aux~Spot unknown processes with odd paths.~Not piping to grep.~kill,top
+kill~Processes~Intermediate~Send a signal to a process.~kill [-9] PID~kill 1234~Stop a malicious process after confirming the PID.~Using -9 first.~ps,top
+ping~Networking~Beginner~Test reachability with ICMP.~ping [-c N] HOST~ping -c 4 192.168.1.1~Basic host discovery (may be blocked).~No reply is not proof of down.~dig,ss
+curl~Networking~Intermediate~Make HTTP requests.~curl [OPTIONS] URL~curl -I https://example.com~Inspect headers and services over HTTP.~Forgetting -L for redirects.~wget,dig
+ss~Networking~Intermediate~Show sockets and connections.~ss -tulpn~ss -tulpn~Find unexpected listening ports.~Missing -p without sudo.~ping,ps
+dig~Networking~Intermediate~Query DNS.~dig DOMAIN [TYPE]~dig example.com MX~Investigate domains behind alerts.~Reading only the answer section.~ping,curl
+ssh~SSH~Intermediate~Encrypted remote shell.~ssh [USER@]HOST~ssh admin@10.0.0.5~Failed ssh logins show in auth.log.~Ignoring host key warnings.~scp,ssh-keygen
+scp~SSH~Intermediate~Copy files over SSH.~scp SRC USER@HOST:DEST~scp log.txt admin@host:/tmp~Move evidence securely.~Wrong colon placement.~ssh,cp
+sha256sum~Cybersecurity~Intermediate~Compute SHA-256 hashes.~sha256sum FILE~sha256sum setup.iso~Compare hashes with known-good or IOC lists.~Using md5 for security decisions.~file,strings
+strings~Cybersecurity~Intermediate~Extract readable text from binaries.~strings FILE~strings sample.bin~Find URLs and commands inside suspicious files.~Running the file instead.~file,grep
+file~Cybersecurity~Beginner~Identify file type.~file FILE~file download.bin~Detect disguised executables.~Trusting file extensions.~strings,sha256sum
+tar~Archives~Intermediate~Create or extract archives.~tar -czf OUT DIR~tar -xzf backup.tgz~Unpack collected evidence.~Mixing up -c and -x.~cp,file
+df~System~Beginner~Show disk usage.~df -h~df -h~Full disks can break logging.~Confusing df with du.~uname,ps
+uname~System~Beginner~Show system info.~uname -a~uname -a~Identify kernel version for vulnerabilities.~Forgetting -a.~df,id`.split("\n").map(l=>{const a=l.split("~");return{n:a[0],c:a[1],l:a[2],d:a[3],s:a[4],e:a[5],x:a[6],m:a[7],r:a[8].split(",")}});
+const byN=n=>D.find(c=>c.n==n),R=[["Basics","pwd ls cd mkdir"],["Files","cat less head tail touch cp mv rm"],["Search & Text","grep find sort uniq wc cut"],["Permissions","chmod chown id whoami"],["Processes","ps kill"],["Networking","ping curl ss dig"],["SSH","ssh scp"],["Cybersecurity","sha256sum strings file"]];
+const M={"-a":"all (include hidden files)","-l":"long format / line count","-la":"long format + hidden files","-i":"ignore case","-r":"recursive","-c":"count","-n":"line numbers / count","-name":"filter by file name","-type":"filter by type","-p":"create parent folders","-h":"human readable sizes","-t":"TCP","-tulpn":"listening TCP/UDP with process","2>/dev/null":"send error messages to /dev/null (hide them)","|":"pipe: left output becomes right input",">":"redirect output into a file"};
+function bd(line){const t=line.match(/"[^"]*"|'[^']*'|\S+/g)||[];let nc=1,h="",ds=[],pv="";for(const x of t){let m;if(x=="|"){m=M[x];nc=1}else if(nc){const c=byN(x);m="command - "+(c?c.d:"program to run");if(c)ds.push(c.d.replace(/\.$/,"").toLowerCase());nc=0}else if(M[x])m="option: "+M[x];else if(pv=="-type")m="value: "+(x=="f"?"files only":x=="d"?"directories only":x);else if(pv=="-name"||/^["']/.test(x))m="text / pattern";else if(/^[\/.~]/.test(x))m="path / location";else m="argument";h+=`<div><b>${esc(x)}</b><br><span class=mu>└── ${esc(m)}</span></div>`;pv=x}
+return `<div class=bd>${h||"<p class=mu>Type a command above.</p>"}</div>`+(ds.length?`<h2>Full meaning</h2><p>Runs: ${esc(ds.join(", then "))}${line.includes("2>/dev/null")?", and hides error messages":""}.</p>`:"")}
+let S={xp:0,st:[],ma:[],fv:[],lb:[],qo:0,qt:0,sk:0,ld:"",fx:1};try{Object.assign(S,JSON.parse(localStorage.getItem("bl")||"{}"))}catch(e){}
+const save=()=>{try{localStorage.setItem("bl",JSON.stringify(S))}catch(e){}};
+{const d=new Date(),t=d.toDateString(),y=new Date(d-864e5).toDateString();if(S.ld!=t){S.sk=S.ld==y?S.sk+1:1;S.ld=t;save()}}
+function toast(m){const e=$("#toast");e.textContent=m;e.style.opacity=1;clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.opacity=0,1800)}
+function xp(n){S.xp+=n;toast("+"+n+" XP");save()}
+const LV=["Linux Beginner","Shell Apprentice","Bash Operator","Cyber Defender","Linux Master"],lvl=()=>Math.min(4,Math.floor(S.xp/200));
+const FS0=()=>({home:{student:{documents:{"report.txt":"Q3 security report\nstatus: draft\n"},logs:{"auth.log":"Sep 30 22:14:03 sshd Failed password for root\nSep 30 22:14:04 sshd Failed password for admin\nSep 30 22:14:05 sshd Accepted password for student\nSep 30 22:15:10 sshd Failed password for guest\n"},secrets:{".hidden_flag":"FLAG{hidden_files_are_not_invisible}\n"},"notes.txt":"remember: ls -a shows hidden files\n"}}});
+let T={fs:FS0(),cwd:["home","student"],log:[]};
+const nd=p=>{let n=T.fs;for(const x of p){if(typeof n!="object"||!(x in n))return null;n=n[x]}return n},
+pth=s=>{const p=s[0]=="/"?[]:[...T.cwd];for(const x of s.split("/")){if(!x||x==".")continue;x==".."?p.pop():p.push(x)}return p},
+prompt=()=>"student@bashlab:"+("/"+T.cwd.join("/")).replace("/home/student","~")+"$ ";
+function one(seg,inp){const a=(seg.match(/"[^"]*"|'[^']*'|\S+/g)||[]).map(x=>/^["'].*["']$/.test(x)?x.slice(1,-1):x);if(!a.length)return"";const c=a[0],ar=a.slice(1),fl=ar.filter(x=>x[0]=="-").join(""),rs=ar.filter(x=>x[0]!="-");
+if(c=="pwd")return"/"+T.cwd.join("/");if(c=="echo")return rs.join(" ");if(c=="whoami")return"student";if(c=="help")return"Try: ls cd pwd cat echo grep find sort uniq wc head whoami clear (pipes | work)";
+if(c=="ls"){const n=nd(rs[0]?pth(rs[0]):T.cwd);if(!n||typeof n!="object")return"ls: cannot access: No such directory";return Object.keys(n).sort().filter(k=>fl.includes("a")||k[0]!=".").map(k=>typeof n[k]=="object"?k+"/":k).join("  ")}
+if(c=="cd"){const p=pth(rs[0]||"/home/student"),n=nd(p);if(!n||typeof n!="object")return"bash: cd: "+rs[0]+": No such directory";T.cwd=p;return""}
+const rd=f=>{let t="";for(const x of f){const n=nd(pth(x));if(typeof n!="string")return null;t+=n}return t};
+if(c=="cat"){const t=rd(rs);return t==null?"cat: No such file":t.replace(/\n$/,"")}
+if(c=="find"){const i=ar.indexOf("-name"),pat=i>=0?ar[i+1]:"*",j=ar.indexOf("-type"),ty=j>=0?ar[j+1]:null,st=ar[0]&&ar[0][0]!="-"?ar[0]:".",re=new RegExp("^"+pat.replace(/[.+^${}()|[\]\\]/g,"\\$&").replace(/\*/g,".*").replace(/\?/g,".")+"$"),res=[];
+const w=(n,p)=>{for(const k of Object.keys(n).sort()){const q=p.replace(/\/$/,"")+"/"+k,d=typeof n[k]=="object";if(re.test(k)&&(!ty||ty==(d?"d":"f")))res.push(q);if(d)w(n[k],q)}};const n=nd(pth(st));if(n&&typeof n=="object")w(n,st);return res.join("\n")}
+const tx=inp!=null?inp:rd(c=="grep"?rs.slice(1):rs);if(["grep","sort","uniq","wc","head"].includes(c)){if(tx==null)return c+": No such file";const L=tx.split("\n").filter(l=>l!=="");
+if(c=="grep"){if(!rs.length)return"usage: grep [OPTIONS] PATTERN [FILE]";const p=fl.includes("i")?rs[0].toLowerCase():rs[0],m=L.filter(l=>(fl.includes("i")?l.toLowerCase():l).includes(p));return fl.includes("c")?String(m.length):m.join("\n")}
+if(c=="sort")return[...L].sort().join("\n");if(c=="uniq")return L.filter((l,i)=>l!=L[i-1]).join("\n");if(c=="wc")return String(L.length);return L.slice(0,10).join("\n")}
+return"bash: "+c+": command not found (type help)"}
+const LABS=[{id:"L1",t:"Find the hidden file",lv:"⭐ Beginner",xp:150,sk:"Hidden files",o:"Find and read the hidden file somewhere inside /home/student.",h:"Hidden files start with '.'. Try ls -a, or find / -name \".hidden*\".",ok:o=>o.includes("FLAG{")},
+{id:"L2",t:"Count failed logins",lv:"⭐⭐ Intermediate",xp:250,sk:"Log analysis",o:"Output ONLY the number of failed logins in logs/auth.log.",h:"Filter with grep, then count lines with wc -l.",ok:o=>o.trim()=="3"},
+{id:"L3",t:"Locate every log file",lv:"⭐⭐ Intermediate",xp:200,sk:"find",o:"Use find to list all .log files.",h:"find START -name \"*.log\"",ok:(o,l)=>/^\s*find/.test(l)&&o.includes("auth.log")}];
+function runCmd(line){if(!line.trim())return;let o;if(line.trim()=="clear"){T.log=[];return}o=line.split("|").length&&line.replace("2>/dev/null","").split("|").reduce((p,s)=>one(s.trim(),p),null)||"";T.log.push([prompt(),line,o]);const L=LABS[LI];if(!S.lb.includes(L.id)&&L.ok(o,line)){S.lb.push(L.id);T.log.push(["","","✓ OBJECTIVE COMPLETE  +"+L.xp+" XP\nCONCEPT MASTERED: "+L.sk]);xp(L.xp)}}
+let P="dash",Q="",CAT="All",CUR=null,LI=0,HINT=0,ELI=0,QC=null,BD='find /var/log -type f -name "*.log" 2>/dev/null',PRE="";
+const PG=[["dash","🏠 Dashboard"],["cmds","📚 Commands"],["bd","🔬 Breakdown"],["labs","🧪 Labs"],["road","🗺️ Roadmap"],["quiz","🧠 Quiz"],["cheat","📋 Cheat Sheet"],["cmp","⚖️ Compare"],["cyber","🛡️ Cyber Mode"],["fav","⭐ Favorites"],["prog","📊 Progress"],["set","⚙️ Settings"]];
+const bar=p=>`<div class=bar><i style="width:${p}%"></i></div>`,card=c=>`<div class=cd data-a=cmd data-v="${c.n}"><b class=m>${c.n}</b> ${S.fv.includes(c.n)?"⭐":""}<p class=mu>${c.d}</p><span class=ch>${c.c}</span><span class=ch>${c.l}</span></div>`;
+const grid=()=>{const q=Q.toLowerCase(),r=D.filter(c=>(CAT=="All"||c.c==CAT)&&(!q||(c.n+c.c+c.d+c.x).toLowerCase().includes(q)));return r.length?r.map(card).join(""):`<p class=mu>No commands match. Clear the search or pick another category.</p>`};
+const ELIS={grep:"Like Ctrl+F for the terminal: you give a word, it shows every line that has it.",chmod:"Each file has three key rings: owner, group, others. chmod decides which keys work.",cd:"Walking into another room of the house.",ls:"Opening a drawer to see what is inside.",find:"A detective sweeping every room for a file by its name."};
+function page(){
+if(P=="dash"){const pc=Math.round(S.ma.length/D.length*100);return`<h1>Welcome to Bash Lab</h1><p class=mu>Learn Bash. Understand Linux. Practice Cybersecurity.</p><div class=g style="margin:16px 0"><div class=st>Commands studied<b>${S.st.length} / ${D.length}</b></div><div class=st>Mastered<b>${S.ma.length}</b></div><div class=st>Labs completed<b>${S.lb.length} / ${LABS.length}</b></div><div class=st>Level<b style="font-size:17px">${LV[lvl()]}</b></div><div class=st>XP<b>${S.xp}</b></div><div class=st>Streak<b>${S.sk} d</b></div></div><p>Mastery ${pc}%</p>${bar(pc)}<p style="margin-top:16px"><button data-a=go data-v=cmds>Continue Learning</button> <button data-a=go data-v=labs>Start a Lab</button></p><h2>Recently studied</h2><p>${S.st.slice(-5).reverse().map(n=>`<span class=ch data-a=cmd data-v="${n}">${n}</span>`).join("")||"<span class=mu>Open a command to start.</span>"}</p><h2>By category</h2>${CATS.map(k=>{const t=D.filter(c=>c.c==k),s=t.filter(c=>S.st.includes(c.n)).length;return t.length?`<p class=m style="font-size:13px">${k} ${s}/${t.length}</p>${bar(s/t.length*100)}`:""}).join("")}`}
+if(P=="cmds"&&CUR){const c=byN(CUR),f=S.fv.includes(c.n);return`<p><button data-a=go data-v=cmds>← Back</button></p><h1 class=m>${c.n}</h1><p class=mu>${c.c} · ${c.l}</p><h2>What</h2><p>${c.d}</p><h2>Syntax</h2><pre>${esc(c.s)}</pre><h2>Example</h2><pre>${esc(c.e)}</pre>${bd(c.e)}<h2>Cybersecurity use</h2><p>${c.x}</p><h2>Common mistake</h2><p class=no>${c.m}</p><h2>Related</h2><p>${c.r.map(n=>byN(n)?`<span class=ch data-a=cmd data-v="${n}">${n}</span>`:`<span class=ch>${n}</span>`).join("")}</p><p><button data-a=try data-v="${c.n}">Try this command</button> <button data-a=fav data-v="${c.n}">${f?"★ Remove favorite":"☆ Add to favorites"}</button> <button data-a=eli data-v="${c.n}">Explain like I'm new</button> <button data-a=quiz data-v="${c.n}">Quiz me</button></p>${ELI?`<p class=ok>🧠 ${ELIS[c.n]||c.d+" Run it like this: "+c.e}</p>`:""}`}
+if(P=="cmds")return`<h1>Commands</h1><input id=q placeholder="Search commands, categories, security uses..." value="${esc(Q)}" style="margin:10px 0"><p>${["All",...CATS].map(k=>`<span class="ch ${CAT==k?"on":""}" data-a=cat data-v="${k}">${k}</span>`).join("")}</p><div class=g id=grid>${grid()}</div>`;
+if(P=="bd")return`<h1>Command Breakdown</h1><p class=mu>Paste a command to see every part explained.</p><input id=bi value="${esc(BD)}" style="margin:10px 0"><p><button data-a=bgo>Break it down</button></p><div id=bo>${bd(BD)}</div>`;
+if(P=="labs"){const L=LABS[LI];return`<h1>Labs</h1><p>${LABS.map((l,i)=>`<span class="ch ${i==LI?"on":""}" data-a=lab data-v=${i}>${S.lb.includes(l.id)?"✅ ":""}${l.t}</span>`).join("")}</p><p><b>${L.t}</b> <span class=mu>${L.lv} · ${L.xp} XP</span></p><p>Objective: ${L.o}</p><p><button data-a=hint>Hint</button> ${HINT?`<span class=ok>${esc(L.h)}</span>`:""}</p><div class=t id=to>${T.log.map(e=>esc(e[0]+e[1])+"\n"+(e[2]?esc(e[2])+"\n":"")).join("")}</div><p class=mu style="margin:6px 0">⚠ Educational simulation: nothing runs on your real computer.</p><div style="display:flex;gap:8px;align-items:center"><span class=m id=pr>${esc(prompt())}</span><input id=ti autocomplete=off spellcheck=false></div>`}
+if(P=="road")return`<h1>Linux & Bash Roadmap</h1><p class=mu>A level unlocks after you study half of the previous one.</p>`+R.map((r,i)=>{const cs=r[1].split(" "),s=cs.filter(n=>S.st.includes(n)).length,pv=i?R[i-1][1].split(" "):[],un=!i||pv.filter(n=>S.st.includes(n)).length>=pv.length/2;return`<h2>${un?"":"🔒 "}Level ${i+1} — ${r[0]} <span class=mu>${s}/${cs.length}</span></h2>${bar(s/cs.length*100)}<p style="margin-top:8px;${un?"":"opacity:.45"}">${cs.map(n=>`<span class="ch ${S.ma.includes(n)?"on":""}" data-a=cmd data-v="${n}">${n}</span>`).join("")}</p>`}).join("");
+if(P=="quiz"){if(!QC)qnew();const c=QC.c;return`<h1>Quiz</h1><p class=mu>Accuracy ${S.qt?Math.round(S.qo/S.qt*100):0}% · ${S.qt} answered</p><h2>What does <code>${c.n}</code> do?</h2>${QC.o.map((o,i)=>`<p><button data-a=ans data-v=${i} ${QC.a>=0?"disabled":""} style="width:100%;text-align:left">${o}</button></p>`).join("")}${QC.a>=0?`<p class="${QC.o[QC.a]==c.d?"ok":"no"}">${QC.o[QC.a]==c.d?"✅ Correct! +10 XP":"❌ Not quite."} ${c.n}: ${c.d} Example: <code>${esc(c.e)}</code></p><button data-a=nq>Next question</button>`:""}`}
+if(P=="cheat")return`<h1>Cheat Sheet</h1><div class=w><table>${D.map((c,i)=>`<tr><td class=m>${c.n}</td><td>${c.d}</td><td><code>${esc(c.e)}</code></td><td><button data-a=copy data-v=${i}>Copy</button></td></tr>`).join("")}</table></div>`;
+if(P=="cmp")return`<h1>Command Comparison</h1>`+[["cat","less","the file is short","the file is long and you need to scroll or search"],["grep","find","you search inside file content","you search for files by name, type or age"],["cp","mv","you want a duplicate","you want to rename or relocate"],["rm","rmdir","you delete files","you delete only empty directories (safer)"],["curl","wget","you inspect HTTP requests and headers","you just download files"],["ps","top","you want a one-time snapshot","you want a live, updating view"],["chmod","chown","you change what can be done (rwx)","you change who owns the file"]].map(x=>`<div class=st style="margin:10px 0"><b class=m style="font-size:17px">${x[0]} vs ${x[1]}</b><p>Use <code>${x[0]}</code> when ${x[2]}.</p><p>Use <code>${x[1]}</code> when ${x[3]}.</p></div>`).join("");
+if(P=="cyber")return`<h1>Cybersecurity Commands</h1><p class=mu>How everyday Linux commands support defensive work and investigation.</p><div class=w><table>${D.map(c=>`<tr><td class=m>${c.n}</td><td>${c.x}</td></tr>`).join("")}</table></div>`;
+if(P=="fav")return`<h1>⭐ My Favorites</h1><div class=g>${S.fv.map(n=>card(byN(n))).join("")||"<p class=mu>No favorites yet. Open a command and choose Add to favorites.</p>"}</div>`;
+if(P=="prog"){const ac=[["🐧 First Command",S.st.length>=1],["🔎 Search Master",S.qo>=5],["🕵 Log Investigator",S.lb.includes("L2")],["🔐 Permission Analyst",S.st.includes("chmod")],["🌐 Network Explorer",["ping","ss","curl","dig"].every(n=>S.st.includes(n))],["⚡ Command Master",S.ma.length>=20]];return`<h1>Progress</h1><p>Level ${lvl()+1} — ${LV[lvl()]} · ${S.xp} XP</p>${bar(S.xp%200/2)}<div class=g style="margin:14px 0"><div class=st>Mastered<b>${S.ma.length}</b></div><div class=st>Labs<b>${S.lb.length}</b></div><div class=st>Quiz accuracy<b>${S.qt?Math.round(S.qo/S.qt*100):0}%</b></div><div class=st>Streak<b>${S.sk} d</b></div></div><h2>Achievements</h2>${ac.map(a=>`<p>${a[1]?"✅":"🔒"} ${a[0]}</p>`).join("")}`}
+return`<h1>Settings</h1><p><button data-a=theme>Toggle light / dark</button></p><p><button data-a=reset>Reset all progress</button></p><p class=mu>Progress is stored in this browser only.</p>`}
+function qnew(n){const c=n?byN(n):D[Math.random()*D.length|0],o=[c.d,...D.filter(x=>x.d!=c.d).sort(()=>Math.random()-.5).slice(0,3).map(x=>x.d)].sort(()=>Math.random()-.5);QC={c,o,a:-1}}
+const A={go(v){P=v;CUR=null;if(v=="quiz")qnew();draw()},cmd(v){CUR=v;P="cmds";ELI=0;if(!S.st.includes(v)){S.st.push(v);xp(5)}draw()},cat(v){CAT=v;draw()},
+fav(v){S.fv.includes(v)?S.fv=S.fv.filter(x=>x!=v):S.fv.push(v);save();draw()},eli(){ELI=1;draw()},try(v){P="labs";PRE=byN(v).e;CUR=null;draw()},quiz(v){P="quiz";qnew(v);draw()},
+ans(v){QC.a=+v;S.qt++;if(QC.o[v]==QC.c.d){S.qo++;if(!S.ma.includes(QC.c.n))S.ma.push(QC.c.n);xp(10)}save();draw()},nq(){qnew();draw()},lab(v){LI=+v;HINT=0;draw()},hint(){HINT=1;draw()},
+bgo(){BD=$("#bi").value;$("#bo").innerHTML=bd(BD)},copy(v){try{navigator.clipboard.writeText(D[v].e);toast("Copied")}catch(e){toast("Copy not available")}},
+theme(){const r=document.documentElement;r.dataset.theme=(r.dataset.theme||(matchMedia("(prefers-color-scheme: light)").matches?"light":"dark"))=="dark"?"light":"dark"},reset(){if(confirm("Reset all progress?")){S={xp:0,st:[],ma:[],fv:[],lb:[],qo:0,qt:0,sk:1,ld:new Date().toDateString(),fx:1};save();draw()}}};
+document.addEventListener("click",e=>{const t=e.target.closest("[data-a]");if(t&&A[t.dataset.a])A[t.dataset.a](t.dataset.v)});
+function draw(){$("#app").innerHTML=`<nav><b>⚡ BASH LAB</b>${PG.map(([k,l])=>`<a tabindex=0 data-a=go data-v=${k} class="${P==k?"on":""}">${l}</a>`).join("")}</nav><main>${page()}</main>`;
+const q=$("#q");if(q)q.oninput=()=>{Q=q.value;$("#grid").innerHTML=grid()};const bi=$("#bi");if(bi)bi.onkeydown=e=>{if(e.key=="Enter")A.bgo()};
+const ti=$("#ti");if(ti){const to=$("#to");to.scrollTop=to.scrollHeight;if(PRE){ti.value=PRE;PRE=""}ti.focus();ti.onkeydown=e=>{if(e.key=="Enter"){runCmd(ti.value);draw()}}}}
+draw();
+</script></body></html>
